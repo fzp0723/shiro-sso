@@ -51,12 +51,7 @@
         <property name="loginUrl" value="/static/login.html"/>
         <property name="successUrl" value="/"/>
         <property name="unauthorizedUrl" value="/static/unauthorized.html"/>
-        <property name="filterChainDefinitions">
-            <value>
-                /test = roles[admin]
-                /** = authc
-            </value>
-        </property>
+        <property name="filterChainDefinitions" value="#{authService.loadFilterChainDefinitions()}"/>
     </bean>
 
 </beans>
