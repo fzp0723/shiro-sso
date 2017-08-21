@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd">
+
+    <context:component-scan base-package="com.bigsys.shiro"></context:component-scan>
+    <mvc:annotation-driven />
+
+    <!-- Realm实现 -->
+    <bean id="userRealm" class="com.bigsys.shiro.realm.UserRealm">
+        <property name="authorizationCachingEnabled" value="false"/>
+        <property name="authenticationCachingEnabled" value="false"/>
+    </bean>
+
+    <bean id="authc" class="com.bigsys.shiro.filter.LoginFilter">
+    </bean>
+
+    <bean id="sessionDAO" class="com.bigsys.shiro.session.SessionManager"></bean>
+
+    <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <constructor-arg value="bigsys-cookie"/>
+        <property name="httpOnly" value="true"/>
+        <property name="maxAge" value="-1"/>
+        <property name="path" value="/"/>
+        <!-- 配置存储Session Cookie的domain为 二级域名 -->
+        <property name="domain" value=".bigsys.com"/>
+    </bean>
+
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <property name="sessionDAO" ref="sessionDAO"></property>
+        <property name="sessionIdCookie" ref="sessionIdCookie"></property>
+    </bean>
+
+    <bean id="cacheManager" class="com.bigsys.shiro.authcache.RedisCacheManager"/>
+
+    <!-- 安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="userRealm" />
+        <property name="sessionManager" ref="sessionManager"></property>
+        <property name="cacheManager" ref="cacheManager"/>
+    </bean>
+
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="/static/login.html"/>
+        <property name="successUrl" value="/"/>
+        <property name="unauthorizedUrl" value="/static/unauthorized.html"/>
+        <property name="filterChainDefinitions">
+            <value>
+                /test = roles[admin]
+                /** = authc
+            </value>
+        </property>
+    </bean>
+
+</beans>
